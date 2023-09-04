@@ -36,14 +36,14 @@ public class CsvTest {
      * @throws FileNotFoundException
      */
     public static void main(String[] args) throws IOException, SQLException {
-        //String configFile = args[3];
-        String configFile = "/Users/pengzhong/Downloads/zhong.config";
+        String configFile = args[3];
+        //String configFile = "/Users/pengzhong/Downloads/zhong.config";
         List<String> stringList = FileUtil.readLines(new File(configFile), StandardCharsets.UTF_8);
 
-//        String srcDir = args[0];
-//        String tarDir = args[1];
-//        String table = args[2];
-//        boolean isNeedNewTable = Boolean.parseBoolean(args[4]);
+        String srcDir = args[0];
+        String tarDir = args[1];
+        String table = args[2];
+        boolean isNeedNewTable = Boolean.parseBoolean(args[4]);
 
 
         String cookie = stringList.get(0);
@@ -57,10 +57,10 @@ public class CsvTest {
         if (stringList.size() > 2) {
             columnsInfo = stringList.get(2);
         }
-        String srcDir = "/Users/pengzhong/Downloads/src";
-        String tarDir = "/Users/pengzhong/Downloads/target";
-        String table = "zhong_test_3";
-        boolean isNeedNewTable = true;
+//        String srcDir = "/Users/pengzhong/Downloads/src";
+//        String tarDir = "/Users/pengzhong/Downloads/target";
+//        String table = "zhong_test_3";
+//        boolean isNeedNewTable = true;
 
         String label = UUID.randomUUID().toString().replace("-", "");
         List<String> fileNames = FileUtil.listFileNames(srcDir);
