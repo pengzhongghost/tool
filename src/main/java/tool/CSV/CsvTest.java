@@ -19,7 +19,6 @@ import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -37,13 +36,14 @@ public class CsvTest {
      * @throws FileNotFoundException
      */
     public static void main(String[] args) throws IOException, SQLException {
-        String configFile = args[3];
+        //String configFile = args[3];
+        String configFile = "/Users/pengzhong/Downloads/zhong.config";
         List<String> stringList = FileUtil.readLines(new File(configFile), StandardCharsets.UTF_8);
 
-        String srcDir = args[0];
-        String tarDir = args[1];
-        String table = args[2];
-        boolean isNeedNewTable = Boolean.parseBoolean(args[4]);
+//        String srcDir = args[0];
+//        String tarDir = args[1];
+//        String table = args[2];
+//        boolean isNeedNewTable = Boolean.parseBoolean(args[4]);
 
 
         String cookie = stringList.get(0);
@@ -57,9 +57,10 @@ public class CsvTest {
         if (stringList.size() > 2) {
             columnsInfo = stringList.get(2);
         }
-//        String srcDir = "/Users/pengzhong/Downloads/src";
-//        String tarDir = "/Users/pengzhong/Downloads/target";
-//        String table = "dyxx_ht_month_bill_3";
+        String srcDir = "/Users/pengzhong/Downloads/src";
+        String tarDir = "/Users/pengzhong/Downloads/target";
+        String table = "zhong_test_3";
+        boolean isNeedNewTable = true;
 
         String label = UUID.randomUUID().toString().replace("-", "");
         List<String> fileNames = FileUtil.listFileNames(srcDir);
@@ -67,7 +68,6 @@ public class CsvTest {
         System.out.println("---------开始文件清洗转换---------");
         //1.文件清洗转换
         AtomicInteger columnNum = new AtomicInteger(0);
-        AtomicBoolean isGetColumnNum = new AtomicBoolean(false);
         for (int i = 0; i < handleFilesNum; i++) {
             String fileName = fileNames.get(i);
             AtomicInteger temp = new AtomicInteger();
@@ -75,21 +75,18 @@ public class CsvTest {
                 FileWriter fileWriter = new FileWriter(new File(tarDir + "/" + fileName));
                 CsvReader csvReader = CsvUtil.getReader(new FileReader(srcDir + "/" + fileName));
                 int finalI = i;
-                boolean finalIsGetColumnNum = isGetColumnNum.get();
+                AtomicInteger tempI = new AtomicInteger(0);
                 csvReader.stream().forEach(strings -> {
                     if (0 != temp.getAndIncrement()) {
                         StringBuilder sb = new StringBuilder();
                         if (isNeedNewTable) {
-                            sb.append(finalI + 1).append("<#$>");
+                            sb.append(tempI.incrementAndGet()).append("<#$>");
                         }
                         List<String> rawList = strings.getRawList();
+                        columnNum.set(rawList.size());
                         for (String str : rawList) {
-                            if (!finalIsGetColumnNum){
-                                columnNum.incrementAndGet();
-                            }
                             sb.append(str).append("<#$>");
                         }
-                        isGetColumnNum.set(true);
                         String result = sb.toString();
                         result = result.substring(0, result.length() - 4);
                         fileWriter.write(result + "\n", true);
@@ -159,7 +156,7 @@ public class CsvTest {
             String body = httpResponse.body();
             System.out.println("create table: " + body);
         }
-        String loadSql = loadSql(label, table, columnsInfo, newCol);
+        String loadSql = loadSql(label, table, columnsInfo, newCol, isNeedNewTable);
         System.out.println("loadSql: " + loadSql);
         requestParam.put("sql", loadSql);
         httpRequest = HttpUtil.createPost("https://e.reduxingxuan.com/bj/pixiu/offline/table/config/createTable")
@@ -173,7 +170,7 @@ public class CsvTest {
 
     private static String createTableSql(String tableName, Integer columnNum) {
         StringBuilder sb = new StringBuilder();
-        sb.append("CREATE TABLE `").append(tableName).append("` (\n").append("  `id` int(11) NOT NULL,");
+        sb.append("CREATE TABLE if not exists`").append(tableName).append("` (\n").append("  `id` int(11) NOT NULL,");
         for (int i = 0; i < columnNum; i++) {
             sb.append("col_").append(i).append(" varchar(765) ").append("null ").append(",");
         }
@@ -191,7 +188,7 @@ public class CsvTest {
                 ");";
     }
 
-    private static String loadSql(String label, String table, String columns, String newCol) {
+    private static String loadSql(String label, String table, String columns, String newCol, boolean isNeedNewTable) {
 //        StringBuilder sb = new StringBuilder();
 //        for (String column : columns) {
 //            sb.append(column).append(",");
@@ -219,7 +216,8 @@ public class CsvTest {
                 "(\n" +
                 "    \"timeout\" = \"36000\"\n" +
                 ");";
-        if (null == newCol) {
+
+        if (null == newCol || isNeedNewTable) {
             return pre + suf;
         } else {
             return pre + mid + suf;
