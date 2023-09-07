@@ -176,7 +176,7 @@ public class CsvTest {
         }
         String substring = sb.substring(0, sb.length() - 1);
         return substring + ") ENGINE=OLAP \n" +
-                "PRIMARY KEY(`id`)\n" +
+                "DUPLICATE KEY(`id`)\n" +
                 "DISTRIBUTED BY HASH(`id`) BUCKETS 6 \n" +
                 "PROPERTIES (\n" +
                 "\"replication_num\" = \"3\",\n" +
