@@ -155,5 +155,7 @@ public class ColumnsToEs {
 //        }
 //        System.out.println(JSONUtil.toJsonStr(result));
     }
-
+    
 }
+
+
